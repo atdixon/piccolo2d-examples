@@ -17,8 +17,8 @@ public class LineBendExample extends AbstractBezierExample {
 
     private static final int DIAM = 25;
     private static final int KDIAM = DIAM + 3;
-    private static final int STRESS = 250;
-    private static final int QUANTUM = 20;
+    private static final int STRESS_FIELD = 250; // the node distance at which the line begins to bend
+    private static final int QUANTUM = 20; // don't let the two nodes get closer than this
 
     public static void main(String[] args) {
         new LineBendExample();
@@ -119,7 +119,7 @@ public class LineBendExample extends AbstractBezierExample {
             Point2D mc1 = new Point2D.Double(mid.getX() - p1.getX(), mid.getY() - p1.getY());
             Point2D mc2 = new Point2D.Double(mid.getX() - p2.getX(), mid.getY() - p2.getY());
 
-            double t = dist > STRESS ? 1 : (dist / STRESS);
+            double t = dist > STRESS_FIELD ? 1 : (dist / STRESS_FIELD);
 
             double cpd = controlPointDistance(t);
 
@@ -153,7 +153,7 @@ public class LineBendExample extends AbstractBezierExample {
 
     }
 
-    /** Orthogonal. */
+    /** Use control points that maintain a constant angle wrt to the straight line between the two nodes. */
     private class OrthogonalStrategy extends Strategy {
 
         private final int angle;
@@ -173,7 +173,7 @@ public class LineBendExample extends AbstractBezierExample {
 
         @Override
         double controlPointDistance(double t) {
-            return (1 - t) * STRESS / 2;
+            return (1 - t) * STRESS_FIELD / 2;
         }
 
         @Override
@@ -183,7 +183,7 @@ public class LineBendExample extends AbstractBezierExample {
 
     }
 
-    /** Rotation. */
+    /** Rotate the control points away from each other as the two nodes approach each other. */
     private class RotationStrategy extends Strategy {
 
         private final int maxAngle;
@@ -203,7 +203,7 @@ public class LineBendExample extends AbstractBezierExample {
 
         @Override
         double controlPointDistance(double t) {
-            return STRESS / 2;
+            return STRESS_FIELD / 2;
         }
 
         @Override
