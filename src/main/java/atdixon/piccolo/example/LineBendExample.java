@@ -33,6 +33,9 @@ public class LineBendExample extends PFrame {
         final PPath c1 = PPath.createEllipse(0, 0, DIAM, DIAM);
         final PPath c2 = PPath.createEllipse(0, 0, DIAM, DIAM);
 
+        final PPath cmid = PPath.createEllipse(0, 0, DIAM, DIAM);
+        cmid.setStrokePaint(Color.red);
+        
         PropertyChangeListener l = new PropertyChangeListener() {
             public void propertyChange(PropertyChangeEvent evt) {
                 line.reset();
@@ -46,6 +49,11 @@ public class LineBendExample extends PFrame {
                     line.setStrokePaint(Color.black);
                     buildLine(p1, p2, line);
                 }
+                // show helpful midpoint
+                Point2D.Double midpoint =
+                    new Point2D.Double(p1.getX() + (p2.getX() - p1.getX()) / 2,
+                                       p1.getY() + (p2.getY() - p1.getY()) / 2);
+                cmid.centerBoundsOnPoint(midpoint.getX(), midpoint.getY());
             }
         };
 
@@ -58,10 +66,11 @@ public class LineBendExample extends PFrame {
         layer.addChild(line);
         layer.addChild(c1);
         layer.addChild(c2);
+        layer.addChild(cmid);
 
         canvas.removeInputEventListener(canvas.getPanEventHandler());
-        canvas.addInputEventListener(new PDragEventHandler());
-
+        c1.addInputEventListener(new PDragEventHandler());
+        c2.addInputEventListener(new PDragEventHandler());
     }
 
     private void buildCurve(Point2D p1, Point2D p2, PPath line) {
