@@ -30,7 +30,7 @@ public class LineBendExample extends PFrame {
         new LineBendExample();
     }
 
-    private Strategy strategy = new RotationStrategy();
+    private Strategy strategy = new OrthogonalStrategy(); // new RotationStrategy();
 
     private PPath line, c1, c2, km, k1, k2;
 
