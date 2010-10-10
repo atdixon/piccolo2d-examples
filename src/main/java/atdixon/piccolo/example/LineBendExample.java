@@ -3,20 +3,17 @@ package atdixon.piccolo.example;
 import edu.umd.cs.piccolo.PCanvas;
 import edu.umd.cs.piccolo.PLayer;
 import edu.umd.cs.piccolo.PNode;
-import edu.umd.cs.piccolo.PRoot;
 import edu.umd.cs.piccolo.event.PDragEventHandler;
 import edu.umd.cs.piccolo.event.PInputEvent;
 import edu.umd.cs.piccolo.nodes.PPath;
 import edu.umd.cs.piccolo.nodes.PText;
-import edu.umd.cs.piccolox.PFrame;
 
 import java.awt.*;
 import java.awt.geom.Point2D;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.util.Random;
 
-public class LineBendExample extends PFrame {
+public class LineBendExample extends AbstractBezierExample {
 
     private static final int DIAM = 25;
     private static final int KDIAM = DIAM + 3;
@@ -27,22 +24,15 @@ public class LineBendExample extends PFrame {
         new LineBendExample();
     }
 
-    private Strategy strategy = new MixupStrategy();
+    private Strategy strategy = new RotationStrategy();
 
     private PPath line, c1, c2, km, k1, k2;
-
-    private PText info;
-
-    private boolean stressed;
 
     @Override
     public void initialize() {
         setSize(800, 600);
         PCanvas canvas = getCanvas();
-        PRoot root = canvas.getRoot();
         PLayer layer = canvas.getLayer();
-
-        info = new PText();
 
         line = PPath.createLine(0, 0, 0, 0);
         line.setStrokePaint(Color.green);
@@ -69,8 +59,6 @@ public class LineBendExample extends PFrame {
         c1.translate(200, 275);
         c2.translate(600, 275);
 
-        layer.addChild(info);
-
         layer.addChild(line);
 
         layer.addChild(km);
@@ -87,8 +75,6 @@ public class LineBendExample extends PFrame {
         km.addChild(text("km"));
         k1.addChild(text("k1"));
         k2.addChild(text("k2"));
-
-        strategy.onUnstress();
 
         canvas.removeInputEventListener(canvas.getPanEventHandler());
 
@@ -109,54 +95,6 @@ public class LineBendExample extends PFrame {
         c2.addInputEventListener(drag);
     }
 
-    private void repel(PNode moveable, PNode still) {
-        Point2D r1 = moveable.getFullBounds().getCenter2D();
-        Point2D r2 = still.getFullBounds().getCenter2D();
-
-        Point2D mid = midpoint(r1, r2);
-
-        // relative mid
-        Point2D m1 = new Point2D.Double(mid.getX() - r1.getX(), mid.getY() - r1.getY());
-
-        Point2D c1 = makeDistanceFromOrigin(m1, -1);
-
-        c1 = translate(c1, r1);
-
-        moveable.centerFullBoundsOnPoint(c1.getX(), c1.getY());
-    }
-
-    private Point2D translate(Point2D p, Point2D t) {
-        return new Point2D.Double(p.getX() + t.getX(), p.getY() + t.getY());
-    }
-
-    private Point2D rotate(Point2D p, double theta) {
-        return new Point2D.Double(
-            p.getX() * Math.cos(theta) - p.getY() * Math.sin(theta),
-            p.getX() * Math.sin(theta) + p.getY() * Math.cos(theta)
-        );
-    }
-
-    private Point2D makeDistanceFromOrigin(Point2D p, double dist) {
-        double denom = Math.sqrt(Math.pow(p.getX(), 2) + Math.pow(p.getY(), 2));
-        return new Point2D.Double(
-            dist * p.getX() / denom,
-            dist * p.getY() / denom
-        );
-    }
-
-    private Point2D midpoint(Point2D p1, Point2D p2) {
-        return new Point2D.Double(p1.getX() + (p2.getX() - p1.getX()) / 2,
-                           p1.getY() + (p2.getY() - p1.getY()) / 2);
-    }
-
-    private double dist(PPath c1, PPath c2) {
-        return dist(c1.getFullBounds().getCenter2D(), c2.getFullBounds().getCenter2D());
-    }
-
-    private double dist(Point2D one, Point2D two) {
-        return Math.sqrt(Math.pow(one.getX() - two.getX(), 2) + Math.pow(one.getY() - two.getY(), 2));
-    }
-
     private PText text(String s) {
         PText text = new PText(s);
         text.setPickable(false);
@@ -169,20 +107,11 @@ public class LineBendExample extends PFrame {
         abstract double controlPointRotation(double t);
         abstract double controlPointDistance(double t);
 
-        void onUnstress() {};
-
         void rebuildCurve() {
             Point2D p1 = c1.getFullBounds().getCenter2D();
             Point2D p2 = c2.getFullBounds().getCenter2D();
 
             double dist = dist(p1, p2);
-
-            if (dist >= STRESS && stressed) {
-                onUnstress();
-                stressed = false;
-            }
-
-            stressed = dist < STRESS;
 
             Point2D mid = midpoint(p1, p2);
 
@@ -222,32 +151,6 @@ public class LineBendExample extends PFrame {
             line.lineTo((float) p2.getX(), (float) p2.getY());
         }
 
-    }
-
-    /** Mixup. */
-    private class MixupStrategy extends Strategy {
-
-        private Random random = new Random();
-        private Strategy mixup;
-
-        @Override
-        void onUnstress() {
-            mixup = random.nextBoolean()
-                ? new OrthogonalStrategy(random.nextInt(180))
-                : new RotationStrategy(random.nextInt(180));
-            info.setText("mixup : " + mixup.toString());
-        }
-
-        @Override
-        double controlPointRotation(double t) {
-            return mixup.controlPointRotation(t);
-        }
-
-        @Override
-        double controlPointDistance(double t) {
-            return mixup.controlPointDistance(t);
-        }
-        
     }
 
     /** Orthogonal. */
