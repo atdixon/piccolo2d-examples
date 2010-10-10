@@ -17,13 +17,14 @@ public class LineBendExample extends PFrame {
 
     private static final int DIAM = 25;
     private static final int STRESS = 200;
-    private static final int QUANTUM = 1;
+    private static final int QUANTUM = 25;
+    private static final int MAX_BEND = 160; // in degrees
 
     public static void main(String[] args) {
         new LineBendExample();
     }
 
-    private PPath km, k1, k2;
+    private PPath line, c1, c2, km, k1, k2;
 
     @Override
     public void initialize() {
@@ -32,11 +33,11 @@ public class LineBendExample extends PFrame {
         PRoot root = canvas.getRoot();
         PLayer layer = canvas.getLayer();
 
-        final PPath line = PPath.createLine(0, 0, 0, 0);
+        line = PPath.createLine(0, 0, 0, 0);
         line.setStrokePaint(Color.green);
 
-        final PPath c1 = PPath.createEllipse(0, 0, DIAM, DIAM);
-        final PPath c2 = PPath.createEllipse(0, 0, DIAM, DIAM);
+        c1 = PPath.createEllipse(0, 0, DIAM, DIAM);
+        c2 = PPath.createEllipse(0, 0, DIAM, DIAM);
 
         km = PPath.createEllipse(0, 0, DIAM, DIAM);
         km.setStrokePaint(Color.red);
@@ -47,13 +48,7 @@ public class LineBendExample extends PFrame {
         
         PropertyChangeListener l = new PropertyChangeListener() {
             public void propertyChange(PropertyChangeEvent evt) {
-                line.reset();
-                Point2D p1 = c1.getFullBounds().getCenter2D();
-                Point2D p2 = c2.getFullBounds().getCenter2D();
-                // show helpful midpoint
-                Point2D mid = midpoint(p1, p2);
-                km.centerFullBoundsOnPoint(mid.getX(), mid.getY());
-                buildCurve(p1, p2, line);
+                rebuildCurve();
             }
         };
 
@@ -84,8 +79,11 @@ public class LineBendExample extends PFrame {
         c2.addInputEventListener(new PDragEventHandler());
     }
 
-    private void buildCurve(Point2D p1, Point2D p2, PPath line) {
-        double dist = Math.max(dist(p1, p2), QUANTUM);
+    private void rebuildCurve() {
+        Point2D p1 = c1.getFullBounds().getCenter2D();
+        Point2D p2 = c2.getFullBounds().getCenter2D();
+
+        double dist = dist(p1, p2);
         Point2D mid = midpoint(p1, p2);
 
         // relative mids
@@ -99,24 +97,27 @@ public class LineBendExample extends PFrame {
 
         boolean direction = p1.getX() < p2.getX();
 
-        Point2D rc1 = rotate(c1, (1 - t) * Math.toRadians(direction ? -180 : 180));
-        Point2D rc2 = rotate(c2, (1 - t) * Math.toRadians(direction ? 180 : -180));
+        Point2D rc1 = rotate(c1, (1 - t) * Math.toRadians(direction ? -MAX_BEND : MAX_BEND));
+        Point2D rc2 = rotate(c2, (1 - t) * Math.toRadians(direction ? MAX_BEND : -MAX_BEND));
 
         c1 = translate(rc1, p1);
         c2 = translate(rc2, p2);
 
         k1.centerFullBoundsOnPoint(c1.getX(), c1.getY());
         k2.centerFullBoundsOnPoint(c2.getX(), c2.getY());
-        
+
+        km.centerFullBoundsOnPoint(mid.getX(), mid.getY());
+
         float x3 = (float) c1.getX();
         float y3 = (float) c1.getY();
 
         float x4 = (float) c2.getX();
         float y4 = (float) c2.getY();
 
+        line.reset();
         line.moveTo((float) p1.getX(), (float) p1.getY());
         line.curveTo(x3, y3, x4, y4, (float) p2.getX(), (float) p2.getY());
-        //line.lineTo((float) p2.getX(), (float) p2.getY());
+        line.lineTo((float) p2.getX(), (float) p2.getY());
     }
 
     private Point2D translate(Point2D p, Point2D t) {
