@@ -2,8 +2,10 @@ package atdixon.piccolo.example;
 
 import edu.umd.cs.piccolo.PCanvas;
 import edu.umd.cs.piccolo.PLayer;
+import edu.umd.cs.piccolo.PNode;
 import edu.umd.cs.piccolo.PRoot;
 import edu.umd.cs.piccolo.event.PDragEventHandler;
+import edu.umd.cs.piccolo.event.PInputEvent;
 import edu.umd.cs.piccolo.nodes.PPath;
 import edu.umd.cs.piccolo.nodes.PText;
 import edu.umd.cs.piccolox.PFrame;
@@ -15,9 +17,11 @@ import java.beans.PropertyChangeListener;
 
 public class LineBendExample extends PFrame {
 
+    enum Bend { LEFT, RIGHT, ANY }
+
     private static final int DIAM = 25;
     private static final int STRESS = 200;
-    private static final int QUANTUM = 25;
+    private static final int QUANTUM = 20;
     private static final int MAX_BEND = 160; // in degrees
 
     public static void main(String[] args) {
@@ -25,6 +29,8 @@ public class LineBendExample extends PFrame {
     }
 
     private PPath line, c1, c2, km, k1, k2;
+
+    private Bend bend = Bend.ANY;
 
     @Override
     public void initialize() {
@@ -55,8 +61,8 @@ public class LineBendExample extends PFrame {
         c1.translate(200, 275);
         c2.translate(600, 275);
 
-        c1.addPropertyChangeListener(l);
-        c2.addPropertyChangeListener(l);
+        c1.addPropertyChangeListener(PNode.PROPERTY_FULL_BOUNDS, l);
+        c2.addPropertyChangeListener(PNode.PROPERTY_FULL_BOUNDS, l);
 
         layer.addChild(line);
         layer.addChild(c1);
@@ -75,8 +81,22 @@ public class LineBendExample extends PFrame {
         k2.addChild(text("k2"));
 
         canvas.removeInputEventListener(canvas.getPanEventHandler());
-        c1.addInputEventListener(new PDragEventHandler());
-        c2.addInputEventListener(new PDragEventHandler());
+
+        PDragEventHandler drag = new PDragEventHandler() {
+            @Override
+            protected void drag(PInputEvent event) {
+                if (dist(c1, c2) > QUANTUM) {
+                    super.drag(event);
+                } else {
+                    PNode d = getDraggedNode();
+                    PNode o = d == c1 ? c2 : c1;
+                    repel(d, o);
+                }
+            }
+        };
+
+        c1.addInputEventListener(drag);
+        c2.addInputEventListener(drag);
     }
 
     private void rebuildCurve() {
@@ -84,6 +104,13 @@ public class LineBendExample extends PFrame {
         Point2D p2 = c2.getFullBounds().getCenter2D();
 
         double dist = dist(p1, p2);
+
+        if (dist > STRESS) {
+            bend = Bend.ANY;
+        } else if (bend == Bend.ANY) {
+            bend = p1.getY() < p2.getY() ? Bend.LEFT : Bend.RIGHT;
+        }
+
         Point2D mid = midpoint(p1, p2);
 
         // relative mids
@@ -95,10 +122,8 @@ public class LineBendExample extends PFrame {
 
         double t = dist > STRESS ? 1 : (dist / STRESS);
 
-        boolean direction = p1.getX() < p2.getX();
-
-        Point2D rc1 = rotate(c1, (1 - t) * Math.toRadians(direction ? -MAX_BEND : MAX_BEND));
-        Point2D rc2 = rotate(c2, (1 - t) * Math.toRadians(direction ? MAX_BEND : -MAX_BEND));
+        Point2D rc1 = rotate(c1, (1 - t) * Math.toRadians(bend == Bend.RIGHT ? -MAX_BEND : MAX_BEND));
+        Point2D rc2 = rotate(c2, (1 - t) * Math.toRadians(bend == Bend.RIGHT ? MAX_BEND : -MAX_BEND));
 
         c1 = translate(rc1, p1);
         c2 = translate(rc2, p2);
@@ -118,6 +143,22 @@ public class LineBendExample extends PFrame {
         line.moveTo((float) p1.getX(), (float) p1.getY());
         line.curveTo(x3, y3, x4, y4, (float) p2.getX(), (float) p2.getY());
         line.lineTo((float) p2.getX(), (float) p2.getY());
+    }
+
+    private void repel(PNode moveable, PNode still) {
+        Point2D r1 = moveable.getFullBounds().getCenter2D();
+        Point2D r2 = still.getFullBounds().getCenter2D();
+
+        Point2D mid = midpoint(r1, r2);
+
+        // relative mid
+        Point2D m1 = new Point2D.Double(mid.getX() - r1.getX(), mid.getY() - r1.getY());
+
+        Point2D c1 = makeDistanceFromOrigin(m1, -1);
+
+        c1 = translate(c1, r1);
+
+        moveable.centerFullBoundsOnPoint(c1.getX(), c1.getY());
     }
 
     private Point2D translate(Point2D p, Point2D t) {
@@ -142,6 +183,10 @@ public class LineBendExample extends PFrame {
     private Point2D midpoint(Point2D p1, Point2D p2) {
         return new Point2D.Double(p1.getX() + (p2.getX() - p1.getX()) / 2,
                            p1.getY() + (p2.getY() - p1.getY()) / 2);
+    }
+
+    private double dist(PPath c1, PPath c2) {
+        return dist(c1.getFullBounds().getCenter2D(), c2.getFullBounds().getCenter2D());
     }
 
     private double dist(Point2D one, Point2D two) {
