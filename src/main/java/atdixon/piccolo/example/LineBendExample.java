@@ -14,27 +14,26 @@ import java.awt.*;
 import java.awt.geom.Point2D;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.Random;
 
 public class LineBendExample extends PFrame {
 
-    enum Bend { LEFT, RIGHT, ANY }
-
     private static final int DIAM = 25;
     private static final int KDIAM = DIAM + 3;
-    private static final int STRESS = 200;
+    private static final int STRESS = 250;
     private static final int QUANTUM = 20;
-    private static final int MAX_BEND = 180; // in degrees
-    private static final int STATIC_BEND = 90;
 
     public static void main(String[] args) {
         new LineBendExample();
     }
 
-    private Strategy strategy = new OrthogonalStrategy(); // new RotationStrategy();
+    private Strategy strategy = new MixupStrategy();
 
     private PPath line, c1, c2, km, k1, k2;
 
-    private Bend bend = Bend.ANY;
+    private PText info;
+
+    private boolean stressed;
 
     @Override
     public void initialize() {
@@ -42,6 +41,8 @@ public class LineBendExample extends PFrame {
         PCanvas canvas = getCanvas();
         PRoot root = canvas.getRoot();
         PLayer layer = canvas.getLayer();
+
+        info = new PText();
 
         line = PPath.createLine(0, 0, 0, 0);
         line.setStrokePaint(Color.green);
@@ -62,11 +63,13 @@ public class LineBendExample extends PFrame {
             }
         };
 
+        c1.addPropertyChangeListener(PNode.PROPERTY_FULL_BOUNDS, l);
+        c2.addPropertyChangeListener(PNode.PROPERTY_FULL_BOUNDS, l);
+
         c1.translate(200, 275);
         c2.translate(600, 275);
 
-        c1.addPropertyChangeListener(PNode.PROPERTY_FULL_BOUNDS, l);
-        c2.addPropertyChangeListener(PNode.PROPERTY_FULL_BOUNDS, l);
+        layer.addChild(info);
 
         layer.addChild(line);
 
@@ -84,6 +87,8 @@ public class LineBendExample extends PFrame {
         km.addChild(text("km"));
         k1.addChild(text("k1"));
         k2.addChild(text("k2"));
+
+        strategy.onUnstress();
 
         canvas.removeInputEventListener(canvas.getPanEventHandler());
 
@@ -164,17 +169,20 @@ public class LineBendExample extends PFrame {
         abstract double controlPointRotation(double t);
         abstract double controlPointDistance(double t);
 
+        void onUnstress() {};
+
         void rebuildCurve() {
             Point2D p1 = c1.getFullBounds().getCenter2D();
             Point2D p2 = c2.getFullBounds().getCenter2D();
 
             double dist = dist(p1, p2);
 
-            if (dist > STRESS) {
-                bend = Bend.ANY;
-            } else if (bend == Bend.ANY) {
-                bend = p1.getY() < p2.getY() ? Bend.LEFT : Bend.RIGHT;
+            if (dist >= STRESS && stressed) {
+                onUnstress();
+                stressed = false;
             }
+
+            stressed = dist < STRESS;
 
             Point2D mid = midpoint(p1, p2);
 
@@ -191,8 +199,8 @@ public class LineBendExample extends PFrame {
 
             double cpr = controlPointRotation(t);
             
-            Point2D rc1 = rotate(c1, Math.toRadians(bend == Bend.RIGHT ? -cpr : cpr));
-            Point2D rc2 = rotate(c2, Math.toRadians(bend == Bend.RIGHT ? cpr : -cpr));
+            Point2D rc1 = rotate(c1, Math.toRadians(-cpr));
+            Point2D rc2 = rotate(c2, Math.toRadians(cpr));
 
             c1 = translate(rc1, p1);
             c2 = translate(rc2, p2);
@@ -216,12 +224,48 @@ public class LineBendExample extends PFrame {
 
     }
 
-    /** Orthogonal. */
-    private final class OrthogonalStrategy extends Strategy {
+    /** Mixup. */
+    private class MixupStrategy extends Strategy {
+
+        private Random random = new Random();
+        private Strategy mixup;
+
+        @Override
+        void onUnstress() {
+            mixup = random.nextBoolean()
+                ? new OrthogonalStrategy(random.nextInt(180))
+                : new RotationStrategy(random.nextInt(180));
+            info.setText("mixup : " + mixup.toString());
+        }
 
         @Override
         double controlPointRotation(double t) {
-            return t > 1 ? 0 : STATIC_BEND;
+            return mixup.controlPointRotation(t);
+        }
+
+        @Override
+        double controlPointDistance(double t) {
+            return mixup.controlPointDistance(t);
+        }
+        
+    }
+
+    /** Orthogonal. */
+    private class OrthogonalStrategy extends Strategy {
+
+        private final int angle;
+
+        public OrthogonalStrategy() {
+            this(90);
+        }
+
+        public OrthogonalStrategy(int angle) {
+            this.angle = angle;
+        }
+
+        @Override
+        double controlPointRotation(double t) {
+            return t > 1 ? 0 : angle;
         }
 
         @Override
@@ -229,19 +273,39 @@ public class LineBendExample extends PFrame {
             return (1 - t) * STRESS / 2;
         }
 
+        @Override
+        public String toString() {
+            return "OrthogonalStrategy(" + angle + ")";
+        }
+
     }
 
     /** Rotation. */
-    private final class RotationStrategy extends Strategy {
+    private class RotationStrategy extends Strategy {
+
+        private final int maxAngle;
+
+        public RotationStrategy() {
+            this(180);
+        }
+
+        public RotationStrategy(int maxAngle) {
+            this.maxAngle = maxAngle;
+        }
 
         @Override
         double controlPointRotation(double t) {
-            return (1 - t) * MAX_BEND;
+            return (1 - t) * maxAngle;
         }
 
         @Override
         double controlPointDistance(double t) {
             return STRESS / 2;
+        }
+
+        @Override
+        public String toString() {
+            return "RotationStrategy(" + maxAngle + ")";
         }
 
     }
