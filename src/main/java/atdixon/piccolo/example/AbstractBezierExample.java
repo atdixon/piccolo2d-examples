@@ -20,10 +20,14 @@ public abstract class AbstractBezierExample extends PFrame {
     }
 
     protected Point2D makeDistanceFromOrigin(Point2D p, double dist) {
-        double denom = Math.sqrt(Math.pow(p.getX(), 2) + Math.pow(p.getY(), 2));
+        return makeDistanceFromOrigin(p.getX(), p.getY(), dist);
+    }
+
+    protected Point2D makeDistanceFromOrigin(double x, double y, double dist) {
+        double denom = Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2));
         return new Point2D.Double(
-            dist * p.getX() / denom,
-            dist * p.getY() / denom
+            dist * x / denom,
+            dist * y / denom
         );
     }
 

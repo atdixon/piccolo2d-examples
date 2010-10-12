@@ -15,116 +15,119 @@ import java.beans.PropertyChangeListener;
 
 public class LineBendExample extends AbstractBezierExample {
 
-    private static final int DIAM = 25;
-    private static final int KDIAM = DIAM + 3;
-    private static final int STRESS_FIELD = 250; // the node distance at which the line begins to bend
-    private static final int QUANTUM = 20; // don't let the two nodes get closer than this
+    protected static final int DIAM = 25;
+    protected static final int KDIAM = DIAM + 3;
+    protected static final int STRESS_FIELD = 250; // the node distance at which the line begins to bend
+    protected static final int QUANTUM = 20; // don't let the two nodes get closer than this
 
     public static void main(String[] args) {
         new LineBendExample();
     }
 
-    private Strategy strategy = new RotationStrategy();
+    protected PCanvas canvas;
+    protected PLayer layer;
 
-    private PPath line, c1, c2, km, k1, k2;
+    protected Strategy strategy = new RotationStrategy();
+
+    protected PPath line, n1, n2, nm, k1, k2;
 
     @Override
     public void initialize() {
         setSize(800, 600);
-        PCanvas canvas = getCanvas();
-        PLayer layer = canvas.getLayer();
+        canvas = getCanvas();
+        layer = canvas.getLayer();
 
         line = PPath.createLine(0, 0, 0, 0);
         line.setStrokePaint(Color.green);
 
-        c1 = PPath.createEllipse(0, 0, DIAM, DIAM);
-        c2 = PPath.createEllipse(0, 0, DIAM, DIAM);
+        n1 = PPath.createEllipse(0, 0, DIAM, DIAM);
+        n2 = PPath.createEllipse(0, 0, DIAM, DIAM);
 
-        km = PPath.createEllipse(0, 0, KDIAM, KDIAM);
-        km.setStrokePaint(Color.red);
+        nm = PPath.createEllipse(0, 0, KDIAM, KDIAM);
+        nm.setStrokePaint(Color.red);
         k1 = PPath.createEllipse(0, 0, KDIAM, KDIAM);
         k1.setStrokePaint(Color.blue);
         k2 = PPath.createEllipse(0, 0, KDIAM, KDIAM);
         k2.setStrokePaint(Color.blue);
         
+        layer.addChild(line);
+
+        layer.addChild(nm);
+        layer.addChild(k1);
+        layer.addChild(k2);
+
+        layer.addChild(n1);
+        layer.addChild(n2);
+
+        // add some helpful labels
+        n1.addChild(text("n1"));
+        n2.addChild(text("n2"));
+
+        nm.addChild(text("nm"));
+        k1.addChild(text("k1"));
+        k2.addChild(text("k2"));
+
+        canvas.removeInputEventListener(canvas.getPanEventHandler());
+
         PropertyChangeListener l = new PropertyChangeListener() {
             public void propertyChange(PropertyChangeEvent evt) {
                 strategy.rebuildCurve();
             }
         };
 
-        c1.addPropertyChangeListener(PNode.PROPERTY_FULL_BOUNDS, l);
-        c2.addPropertyChangeListener(PNode.PROPERTY_FULL_BOUNDS, l);
-
-        c1.translate(200, 275);
-        c2.translate(600, 275);
-
-        layer.addChild(line);
-
-        layer.addChild(km);
-        layer.addChild(k1);
-        layer.addChild(k2);
-
-        layer.addChild(c1);
-        layer.addChild(c2);
-
-        // add some helpful labels
-        c1.addChild(text("c1"));
-        c2.addChild(text("c2"));
-
-        km.addChild(text("km"));
-        k1.addChild(text("k1"));
-        k2.addChild(text("k2"));
-
-        canvas.removeInputEventListener(canvas.getPanEventHandler());
-
+        n1.addPropertyChangeListener(PNode.PROPERTY_FULL_BOUNDS, l);
+        n2.addPropertyChangeListener(PNode.PROPERTY_FULL_BOUNDS, l);
+        
         PDragEventHandler drag = new PDragEventHandler() {
             @Override
             protected void drag(PInputEvent event) {
-                if (dist(c1, c2) > QUANTUM) {
+                if (dist(n1, n2) > QUANTUM) {
                     super.drag(event);
                 } else {
                     PNode d = getDraggedNode();
-                    PNode o = d == c1 ? c2 : c1;
+                    PNode o = d == n1 ? n2 : n1;
                     repel(d, o);
                 }
             }
         };
 
-        c1.addInputEventListener(drag);
-        c2.addInputEventListener(drag);
+        n1.addInputEventListener(drag);
+        n2.addInputEventListener(drag);
+
+        n1.translate(200, 275);
+        n2.translate(600, 275);
     }
 
-    private PText text(String s) {
+    protected PText text(String s) {
         PText text = new PText(s);
         text.setPickable(false);
         return text;
     }
 
     /** Strategy. */
-    abstract class Strategy {
+    protected abstract class Strategy {
 
         abstract double controlPointRotation(double t);
         abstract double controlPointDistance(double t);
 
         void rebuildCurve() {
-            Point2D p1 = c1.getFullBounds().getCenter2D();
-            Point2D p2 = c2.getFullBounds().getCenter2D();
+            Point2D p1 = n1.getFullBounds().getCenter2D();
+            Point2D p2 = n2.getFullBounds().getCenter2D();
 
             double dist = dist(p1, p2);
 
             Point2D mid = midpoint(p1, p2);
 
             // relative mids
-            Point2D mc1 = new Point2D.Double(mid.getX() - p1.getX(), mid.getY() - p1.getY());
-            Point2D mc2 = new Point2D.Double(mid.getX() - p2.getX(), mid.getY() - p2.getY());
+            Point2D mp1 = new Point2D.Double(mid.getX() - p1.getX(), mid.getY() - p1.getY());
+            Point2D mp2 = new Point2D.Double(mid.getX() - p2.getX(), mid.getY() - p2.getY());
 
             double t = dist > STRESS_FIELD ? 1 : (dist / STRESS_FIELD);
 
             double cpd = controlPointDistance(t);
 
-            Point2D c1 = makeDistanceFromOrigin(mc1, cpd);
-            Point2D c2 = makeDistanceFromOrigin(mc2, controlPointDistance(t));
+            Point2D c1 = makeDistanceFromOrigin(mp1, cpd);
+            Point2D c2 = makeDistanceFromOrigin(mp2, cpd);
 
             double cpr = controlPointRotation(t);
             
@@ -137,7 +140,7 @@ public class LineBendExample extends AbstractBezierExample {
             k1.centerFullBoundsOnPoint(c1.getX(), c1.getY());
             k2.centerFullBoundsOnPoint(c2.getX(), c2.getY());
 
-            km.centerFullBoundsOnPoint(mid.getX(), mid.getY());
+            nm.centerFullBoundsOnPoint(mid.getX(), mid.getY());
 
             float x3 = (float) c1.getX();
             float y3 = (float) c1.getY();
@@ -154,7 +157,7 @@ public class LineBendExample extends AbstractBezierExample {
     }
 
     /** Use control points that maintain a constant angle wrt to the straight line between the two nodes. */
-    private class OrthogonalStrategy extends Strategy {
+    protected class OrthogonalStrategy extends Strategy {
 
         private final int angle;
 
@@ -184,7 +187,7 @@ public class LineBendExample extends AbstractBezierExample {
     }
 
     /** Rotate the control points away from each other as the two nodes approach each other. */
-    private class RotationStrategy extends Strategy {
+    protected class RotationStrategy extends Strategy {
 
         private final int maxAngle;
 
