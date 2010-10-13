@@ -1,5 +1,6 @@
 package atdixon.piccolo.example;
 
+import edu.umd.cs.piccolo.PCamera;
 import edu.umd.cs.piccolo.PCanvas;
 import edu.umd.cs.piccolo.PLayer;
 import edu.umd.cs.piccolo.PNode;
@@ -29,13 +30,14 @@ public class SemanticZoomExample extends PFrame {
     public void initialize() {
         setSize(SCREEN);
 
-        PCanvas canvas = getCanvas();
-        PLayer layer = canvas.getLayer();
+        final PCanvas canvas = getCanvas();
+        final PLayer layer = canvas.getLayer();
+
         for (int i = 0; i < NODES; ++i) {
             ZoomAwareCircle c = new ZoomAwareCircle();
-            layer.addChild(c);
             c.offset(random.nextInt((int) SCREEN.getWidth()),
                      random.nextInt((int) SCREEN.getHeight()));
+            layer.addChild(c);
         }
     }
 
@@ -44,7 +46,7 @@ public class SemanticZoomExample extends PFrame {
         ZoomAwareCircle() {
             setPathToEllipse(0, 0, DIAM, DIAM);
             Point2D m = getBounds().getCenter2D();
-
+            
             PPath c1 = PPath.createEllipse(0, 0, DIAM / 2, DIAM / 2);
             PPath c2 = PPath.createEllipse(0, 0, DIAM / 2, DIAM / 2);
             addChild(c1);
