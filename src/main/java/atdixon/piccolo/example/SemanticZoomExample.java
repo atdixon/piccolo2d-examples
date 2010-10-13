@@ -7,12 +7,15 @@ import edu.umd.cs.piccolo.nodes.PPath;
 import edu.umd.cs.piccolo.util.PPaintContext;
 import edu.umd.cs.piccolox.PFrame;
 
+import java.awt.*;
 import java.awt.geom.Point2D;
 import java.util.ListIterator;
 import java.util.Random;
 
 public class SemanticZoomExample extends PFrame {
 
+    private static final Dimension SCREEN = new Dimension(800, 600);
+    
     private static final int NODES = 1000;
     private static final int DIAM = 40;
 
@@ -24,13 +27,15 @@ public class SemanticZoomExample extends PFrame {
 
     @Override
     public void initialize() {
-        setSize(800, 600);
+        setSize(SCREEN);
+
         PCanvas canvas = getCanvas();
         PLayer layer = canvas.getLayer();
         for (int i = 0; i < NODES; ++i) {
             ZoomAwareCircle c = new ZoomAwareCircle();
             layer.addChild(c);
-            c.offset(random.nextInt(800), random.nextInt(600));
+            c.offset(random.nextInt((int) SCREEN.getWidth()),
+                     random.nextInt((int) SCREEN.getHeight()));
         }
     }
 
