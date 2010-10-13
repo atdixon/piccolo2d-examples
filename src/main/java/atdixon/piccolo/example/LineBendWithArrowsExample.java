@@ -36,45 +36,29 @@ public class LineBendWithArrowsExample extends LineBendExample {
                 Point2D p2 = n2.getFullBounds().getCenter2D();
                 Point2D c2 = k2.getFullBounds().getCenter2D();
 
-                double d1 = toPolarAngle(c1.getX() - p1.getX(), c1.getY() - p1.getY());
-                double d2 = toPolarAngle(c2.getX() - p2.getX(), c2.getY() - p2.getY());
+                double x1 = c1.getX() - p1.getX();
+                double y1 = c1.getY() - p1.getY();
 
-                Point2D t1 = makeDistanceFromOrigin(c1.getX() - p1.getX(), c1.getY() - p1.getY(), DIAM / 2);
-                Point2D t2 = makeDistanceFromOrigin(c2.getX() - p2.getX(), c2.getY() - p2.getY(), DIAM / 2);
+                double x2 = c2.getX() - p2.getX();
+                double y2 = c2.getY() - p2.getY();
 
+                Point2D t1 = makeDistanceFromOrigin(x1, y1, DIAM / 2);
+                Point2D t2 = makeDistanceFromOrigin(x2, y2, DIAM / 2);
+                
+                double r1 = Math.atan2(y1, x1);
+                double r2 = Math.atan2(y2, x2);
 
                 a1.setOffset(p1.getX() + t1.getX(), p1.getY() + t1.getY());
                 a2.setOffset(p2.getX() + t2.getX(), p2.getY() + t2.getY());
 
-                a1.setRotation(- d1);
-                a2.setRotation(- d2);
+                a1.setRotation(r1);
+                a2.setRotation(r2);
             }
         };
 
         k1.addPropertyChangeListener(PNode.PROPERTY_FULL_BOUNDS, l);
         k2.addPropertyChangeListener(PNode.PROPERTY_FULL_BOUNDS, l);
 
-    }
-
-    private double toPolarAngle(double x, double y) {
-        double d = Math.atan(Math.abs(y) / Math.abs(x));
-        int q = toQuadrant(x, y);
-        switch (q) {
-            case 0:
-                return Math.toRadians(360) - d;
-            case 1:
-                return Math.toRadians(180) + d;
-            case 2:
-                return Math.toRadians(180) - d;
-            case 3:
-                return d;
-            default:
-                throw new IllegalStateException(String.valueOf(q));
-        }
-    }
-
-    private int toQuadrant(double x, double y) {
-        return (y < 0 ? 2 : 0) + (y < 0 != x < 0 ? 1 : 0);
     }
 
     private PPath arrow(int height, int width) {
