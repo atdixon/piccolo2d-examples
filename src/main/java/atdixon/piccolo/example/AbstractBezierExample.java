@@ -57,7 +57,11 @@ public abstract class AbstractBezierExample extends PFrame {
     }
 
     protected double dist(Point2D one, Point2D two) {
-        return Math.sqrt(Math.pow(one.getX() - two.getX(), 2) + Math.pow(one.getY() - two.getY(), 2));
+        return dist(one.getX(), one.getY(), two.getX(), two.getY());
+    }
+
+    protected double dist(double x1, double y1, double x2, double y2) {
+        return Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2));
     }
 
 }
