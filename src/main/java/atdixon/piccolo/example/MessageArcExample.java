@@ -47,9 +47,10 @@ public class MessageArcExample extends AbstractBezierExample {
         l2.setStrokePaint(Color.lightGray);
         layer.addChild(l2);
 
+        layer.addChild(arc = new PPath());
+
         layer.addChild(n1 = PPath.createEllipse(0, 0, DIAM, DIAM));
         layer.addChild(n2 = PPath.createEllipse(0, 0, DIAM, DIAM));
-        layer.addChild(arc = new PPath());
 
         l1.setPickable(false);
         l2.setPickable(false);
@@ -63,7 +64,7 @@ public class MessageArcExample extends AbstractBezierExample {
                 Point2D c1 = n1.getFullBounds().getCenter2D();
                 Point2D c2 = n2.getFullBounds().getCenter2D();
 
-                double dist = Math.abs(n2.getXOffset() - N - n1.getXOffset()); // assume we're moving n2 r to l
+                double dist = Math.abs(n2.getXOffset() - N - n1.getXOffset());
                 double t = dist < F ? dist / F : 1;
 
                 Point2D t1 = translate(rotate(new Point2D.Double(R[0] * (1 - t), 0), -A[0]), c1);
@@ -89,8 +90,8 @@ public class MessageArcExample extends AbstractBezierExample {
         n1.addPropertyChangeListener(n);
         n2.addPropertyChangeListener(n);
 
-        n1.offset(400, 250);
-        n2.offset(450, 250 + N);
+        n1.offset(350, 225);
+        n2.offset(350 + N, 325);
 
         canvas.removeInputEventListener(canvas.getPanEventHandler());
         canvas.removeInputEventListener(canvas.getZoomEventHandler());
