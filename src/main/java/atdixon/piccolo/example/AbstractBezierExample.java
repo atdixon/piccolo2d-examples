@@ -8,6 +8,10 @@ import java.awt.geom.Point2D;
 
 public abstract class AbstractBezierExample extends PFrame {
 
+    protected Point2D clipX(Point2D s, Point2D clipper) {
+        return new Point2D.Double(Math.max(s.getX(), clipper.getX()), s.getY());
+    }
+
     protected Point2D translate(Point2D p, Point2D t) {
         return new Point2D.Double(p.getX() + t.getX(), p.getY() + t.getY());
     }
