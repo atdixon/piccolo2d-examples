@@ -537,7 +537,7 @@ public class _PStyledText extends PNode {
                 measurer.nextLayout(Float.MAX_VALUE);
             }
             else {
-                measurer.nextLayout((float)  Math.max(Math.ceil(getWidth() - insets.left - insets.right), 0));
+                measurer.nextLayout((float) Math.ceil(getWidth() - insets.left - insets.right));
             }
 
             breakList.add(new Integer(measurer.getPosition()));
