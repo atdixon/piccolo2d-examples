@@ -1,0 +1,14 @@
+import javax.swing.*
+import edu.umd.cs.piccolo.*
+import edu.umd.cs.piccolo.nodes.*
+import edu.umd.cs.piccolox.*
+
+canvas = frame.canvas
+camera = canvas.camera
+root = canvas.root
+layer = canvas.layer
+
+SwingUtilities.invokeLater {
+    n = new PText("hello world")
+    layer.addChild(n)
+}
