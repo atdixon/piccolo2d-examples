@@ -1,6 +1,6 @@
 package atdixon.piccolo.example;
 
-import atdixon.piccolo.support.CustomBreakingText;
+import atdixon.piccolo.example.support.CustomBreakingText;
 import edu.umd.cs.piccolo.PCanvas;
 import edu.umd.cs.piccolo.PLayer;
 import edu.umd.cs.piccolo.PNode;

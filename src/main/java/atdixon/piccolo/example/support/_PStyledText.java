@@ -1,4 +1,4 @@
-package atdixon.piccolo.support;
+package atdixon.piccolo.example.support;
 
 /*
  * Copyright (c) 2008-2010, Piccolo2D project, http://piccolo2d.org

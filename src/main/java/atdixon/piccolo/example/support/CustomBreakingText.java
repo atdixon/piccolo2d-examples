@@ -1,4 +1,4 @@
-package atdixon.piccolo.support;
+package atdixon.piccolo.example.support;
 
 import java.awt.font.LineBreakMeasurer;
 import java.text.AttributedCharacterIterator;
