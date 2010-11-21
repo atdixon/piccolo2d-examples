@@ -8,7 +8,7 @@ camera = canvas.camera
 root = canvas.root
 layer = canvas.layer
 
-SwingUtilities.invokeLater {
+SwingUtilities.invokeAndWait {
     n = new PText("hello world")
     layer.addChild(n)
 }
