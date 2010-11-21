@@ -10,11 +10,13 @@ import edu.umd.cs.piccolox.handles.PBoundsHandle;
 
 import javax.swing.text.*;
 import java.awt.*;
+import java.awt.geom.Rectangle2D;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
 public class PStyledTextExample extends PFrame {
 
+    private static final String PRE = "example : ";
     private static final String PKG = "atdixon.piccolo.example";
     private static final String CLS = "\nPStyledTextExample";
 
@@ -22,45 +24,61 @@ public class PStyledTextExample extends PFrame {
         new PStyledTextExample();
     }
 
+    private PPath square;
+    private CustomBreakingText text;
+
     @Override
     public void initialize() {
         setSize(800, 600);
         PCanvas cnv = getCanvas();
         PLayer lyr = cnv.getLayer();
 
-        final PPath sqr = PPath.createRectangle(0, 0, 300, 100);
-        sqr.setStrokePaint(Color.green);
-        PBoundsHandle.addBoundsHandlesTo(sqr);
+        square = PPath.createRectangle(0, 0, 300, 100);
+        square.setStrokePaint(Color.green);
+        PBoundsHandle.addBoundsHandlesTo(square);
 
-        final CustomBreakingText text = new CustomBreakingText() {
+        text = new CustomBreakingText() {
             @Override
             public boolean isBreakableChar(char c) {
                 return Character.isUpperCase(c) || Character.isSpaceChar(c);
             }
         };
+        text.setDocument(document());
         text.setInsets(new Insets(10,10,10,10));
         text.setConstrainWidthToTextWidth(false);
-        text.setDocument(document());
+        text.setPickable(false);
+        
+        square.addChild(text);
 
-        sqr.addChild(text);
+        // scale, just so we can see that our parent/child positioning translations are correct
+        text.scale(1.2);
 
-        sqr.addPropertyChangeListener(PNode.PROPERTY_FULL_BOUNDS, new PropertyChangeListener() {
+        PropertyChangeListener l = new PropertyChangeListener() {
             public void propertyChange(PropertyChangeEvent evt) {
-                double yoff = (sqr.getHeight() - text.getHeight()) / 2;
-                text.setBounds(0, yoff, sqr.getWidth(), text.getHeight());
+                updateTextPosition();
             }
-        });
+        };
+        square.addPropertyChangeListener(PNode.PROPERTY_FULL_BOUNDS, l);
 
-        sqr.offset(100, 100);
+        lyr.addChild(square);
+        square.offset(100, 100);
+        updateTextPosition();
+    }
 
-        lyr.addChild(sqr);
+    private void updateTextPosition() {
+        Rectangle2D p2l = text.parentToLocal(square.getBounds());
+        Rectangle2D l2p = text.localToParent(text.getBounds());
+        double yoff = (square.getHeight() - l2p.getHeight()) / 2;
+        text.setOffset(square.getX(), square.getY() + yoff);
+        text.setWidth(p2l.getWidth());
     }
 
     private Document document() {
         Document document = new DefaultStyledDocument();
         try {
-            document.insertString(0, PKG, attrs(12));
-            document.insertString(PKG.length(), CLS, attrs(16));
+            document.insertString(0, PRE, attrs(8, true));
+            document.insertString(document.getLength(), PKG, attrs(12, false));
+            document.insertString(document.getLength(), CLS, attrs(16, false));
         }
         catch (BadLocationException e) {
             // ignore
@@ -68,10 +86,11 @@ public class PStyledTextExample extends PFrame {
         return document;
     }
 
-    private SimpleAttributeSet attrs(int fontSize) {
+    private SimpleAttributeSet attrs(int fontSize, boolean italic) {
         SimpleAttributeSet as = new SimpleAttributeSet();
         as.addAttribute(StyleConstants.CharacterConstants.FontFamily, "Helvetica");
         as.addAttribute(StyleConstants.CharacterConstants.FontSize, fontSize);
+        as.addAttribute(StyleConstants.CharacterConstants.Italic, italic);
         as.addAttribute(StyleConstants.ALIGN_RIGHT, true);
         return as;
     }
