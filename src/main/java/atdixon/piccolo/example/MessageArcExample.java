@@ -23,8 +23,8 @@ public class MessageArcExample extends AbstractBezierExample {
     private static final double   F = 200; // field (horiz. distance under which line arcs)
     private static final double   N = 50; // natural horiz separation between
 
-    private static final double ARROW_LENGTH = 30;
-    private static final double ARROW_WIDTH = 30;
+    private static final double ARROW_LENGTH = 25;
+    private static final double ARROW_WIDTH = 10;
 
     public static void main(String[] args) {
         new MessageArcExample();
@@ -107,55 +107,52 @@ public class MessageArcExample extends AbstractBezierExample {
     }
 
     private PPath redrawArrows(double... curve) {
-        // curve endpoint
-        double xe = curve[6];
-        double ye = curve[7];
-
-        double[] sub = subdivideUntil(curve, ARROW_LENGTH);
+        double[] sub = subdivide(curve, ARROW_LENGTH);
 
         double x1 = sub[0];
         double y1 = sub[1];
-        double x2 = sub[2];
-        double y2 = sub[3];
-        double x3 = sub[4];
-        double y3 = sub[5];
         double x4 = sub[6];
         double y4 = sub[7];
 
+        Point2D e = makeDistanceFromOrigin(x1 - x4, y1 - y4, ARROW_LENGTH);
+        x1 = x4 + e.getX();
+        y1 = y4 + e.getY();
+
+        // arrow tails
+        double m = (y4 - y1) / (x4 - x1);
+        double at_x1 = x1 + m * ARROW_WIDTH / Math.sqrt(m*m + 1);
+        double at_y1 = y1 - ARROW_WIDTH / Math.sqrt(m*m + 1);
+        double at_x2 = x1 - m * ARROW_WIDTH / Math.sqrt(m*m + 1);
+        double at_y2 = y1 + ARROW_WIDTH / Math.sqrt(m*m + 1);
         a1.reset();
-        a1.moveTo((float) x1, (float) y1);
-        a1.curveTo((float) x2, (float) y2,
-                   (float) x3, (float) y3,
-                   (float) x4, (float) y4);
-
-        a1.setStrokePaint(Color.red);
-
-        layer.addChild(a1);
-
+        a1.moveTo((float) at_x1, (float) at_y1);
+        a1.lineTo((float) at_x2, (float) at_y2);
+        a1.lineTo((float) x4, (float) y4);
+        a1.lineTo((float) at_x1, (float) at_y1);
+        
         return a1;
     }
 
-    private double[] subdivideUntil(double[] curve, double distance) {
-        if (dist(curve[0], curve[1], curve[6], curve[7]) <= distance) {
+    private double[] subdivide(double[] curve, double limit) {
+        if (dist(curve[0], curve[1], curve[6], curve[7]) <= limit) {
             return curve;
         }
         double[] left = new double[8],
                  right = new double[8];
         CubicCurve2D.subdivide(curve, 0, left, 0, right, 0);
-        return subdivideUntil(right, distance);
+        return subdivide(right, limit);
     }
 
     private void addHandles() {
         layer.addChild(h1 = PPath.createRectangle(0, 0, DIAM, DIAM));
         layer.addChild(h2 = PPath.createRectangle(0, 0, DIAM, DIAM));
-
-        h1.offset(300, 100);
-        h2.offset(400, 100);
+        h1.offset(300, 120);
+        h2.offset(400, 120);
     }
 
     private void addArrows() {
         layer.addChild(a1 = new PPath());
-        a1.setStrokePaint(Color.red);
+        a1.setPaint(Color.white);
     }
 
     private void addMessage() {
@@ -164,12 +161,10 @@ public class MessageArcExample extends AbstractBezierExample {
     }
 
     private void addLines() {
-        l1 = PPath.createLine(0, 0, 0, 800);
+        layer.addChild(l1 = PPath.createLine(0, 0, 0, 800));
+        layer.addChild(l2 = PPath.createLine(0, 0, 0, 800));
         l1.setStrokePaint(Color.lightGray);
-        layer.addChild(l1);
-        l2 = PPath.createLine(0, 0, 0, 800);
         l2.setStrokePaint(Color.lightGray);
-        layer.addChild(l2);
         l1.setPickable(false);
         l2.setPickable(false);
     }
