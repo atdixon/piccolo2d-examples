@@ -58,7 +58,7 @@ public class PropertyChangeParentMaskExample extends PFrame {
         private PNode innerMostNode;
 
         Bullseye() {
-            int size = 60;
+            int size = 100;
             innerMostNode = this;
             for (int i = 0; i < 5; ++i) {
                 PPath curr = PPath.createEllipse(0, 0, size, size);
@@ -66,7 +66,7 @@ public class PropertyChangeParentMaskExample extends PFrame {
                 curr.centerBoundsOnPoint(c.getX(), c.getY());
                 curr.setPropertyChangeParentMask(PNode.PROPERTY_CODE_FULL_BOUNDS);
                 innerMostNode.addChild(curr);
-                size -= 10;
+                size -= 15;
                 innerMostNode = curr;
             }
         }
