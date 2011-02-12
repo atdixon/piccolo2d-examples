@@ -17,12 +17,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Various examples of groups of children nodes.
+ * Various examples of node picking when we have a parent node with multiple children.
  */
-public class CompositeGroupsExample extends PFrame {
+public class PickingExample extends PFrame {
 
     public static void main(String[] args) {
-        new CompositeGroupsExample();
+        new PickingExample();
     }
 
     @Override
@@ -31,6 +31,7 @@ public class CompositeGroupsExample extends PFrame {
         PLayer layer = canvas.getLayer();
 
         OutliningGroup g1 = new OutliningGroup();
+        g1.setStrokePaint(Color.red);
         layer.addChild(g1);
         g1.translate(100, 100);
 
@@ -39,8 +40,14 @@ public class CompositeGroupsExample extends PFrame {
         g2.translate(300, 300);
 
         PrePickingGroup g3 = new PrePickingGroup();
+        g3.setStrokePaint(Color.blue);
         layer.addChild(g3);
-        g3.translate(300, 0);
+        g3.translate(300, 100);
+
+        PostPickingGroup g4 = new PostPickingGroup();
+        g4.setStrokePaint(Color.cyan);
+        layer.addChild(g4);
+        g4.translate(100, 300);
 
         // remove pan handler and add drag handler so we can demo the pickable behavior of the nodes
         canvas.removeInputEventListener(canvas.getPanEventHandler());
@@ -49,8 +56,9 @@ public class CompositeGroupsExample extends PFrame {
 
     /**
      * Demonstrates the use of {@link PComposite} to create a group of children nodes but
-     * whose parent becomes the first-class picked node when a child is interacted with.
-     * For example, a mouse click on any child will pick the parent.
+     * whose parent becomes the picked node when a child would otherwise have been picked.
+     * One use case for this approach would be when you want child nodes to be able to be
+     * clicked on but drag the parent as a whole.
      */
     static class CompositeGroup extends PComposite {
 
@@ -87,12 +95,30 @@ public class CompositeGroupsExample extends PFrame {
     /**
      * Overrides {@link OutliningGroup} with a simple override of {@link PNode#pick(PPickPath)} so that it is
      * picked before any of its children.
+     * The effect is that this node is picked before its children when it answers true for
+     * {@link #fullIntersects(java.awt.geom.Rectangle2D)}.
      */
     static class PrePickingGroup extends OutliningGroup {
 
         @Override
         protected boolean pick(PPickPath path) {
             return true;
+        }
+
+    }
+
+    /**
+     * Overrides {@link OutliningGroup}, sets children as unpickable and relies on
+     * {@link PNode#pickAfterChildren(edu.umd.cs.piccolo.util.PPickPath)} to achieve the pick.
+     */
+    static class PostPickingGroup extends OutliningGroup {
+
+        PostPickingGroup() {
+            setChildrenPickable(false);
+            // We could override pickAfterChildren OR intersects to achieve a desired behavior; but here
+            // we will rely on PPath's implementation of these methods (which will consider this node
+            // intersected as long as it has a non-null paint/fill.)
+            setPaint(Color.white);
         }
 
     }
