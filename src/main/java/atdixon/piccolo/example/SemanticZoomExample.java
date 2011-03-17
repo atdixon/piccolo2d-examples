@@ -1,6 +1,5 @@
 package atdixon.piccolo.example;
 
-import edu.umd.cs.piccolo.PCamera;
 import edu.umd.cs.piccolo.PCanvas;
 import edu.umd.cs.piccolo.PLayer;
 import edu.umd.cs.piccolo.PNode;
@@ -8,7 +7,7 @@ import edu.umd.cs.piccolo.nodes.PPath;
 import edu.umd.cs.piccolo.util.PPaintContext;
 import edu.umd.cs.piccolox.PFrame;
 
-import java.awt.*;
+import java.awt.Dimension;
 import java.awt.geom.Point2D;
 import java.util.ListIterator;
 import java.util.Random;
@@ -43,6 +42,8 @@ public class SemanticZoomExample extends PFrame {
 
     private static final class ZoomAwareCircle extends PPath {
 
+        private boolean childrenAreVisible = false;
+
         ZoomAwareCircle() {
             setPathToEllipse(0, 0, DIAM, DIAM);
             Point2D m = getBounds().getCenter2D();
@@ -51,6 +52,7 @@ public class SemanticZoomExample extends PFrame {
             PPath c2 = PPath.createEllipse(0, 0, DIAM / 2, DIAM / 2);
             addChild(c1);
             addChild(c2);
+            setChildrenVisibility(false);
 
             c1.centerBoundsOnPoint(m.getX(), m.getY());
             c1.translate(DIAM / 4, 0);
@@ -60,7 +62,10 @@ public class SemanticZoomExample extends PFrame {
 
         @Override
         protected void paint(PPaintContext pc) {
-            setChildrenVisibility(pc.getScale() > 1.5);
+            boolean childrenShouldBeVisible = pc.getScale() > 1.5;
+            if (childrenShouldBeVisible != childrenAreVisible) {
+                setChildrenVisibility(childrenShouldBeVisible);
+            }
             super.paint(pc);
         }
 
@@ -69,6 +74,7 @@ public class SemanticZoomExample extends PFrame {
             while (children.hasNext()) {
                 ((PNode) children.next()).setVisible(v);
             }
+            childrenAreVisible = v;
         }
 
     }
