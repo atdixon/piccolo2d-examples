@@ -8,10 +8,8 @@ import edu.umd.cs.piccolox.PFrame;
 import edu.umd.cs.piccolox.pswing.PSwing;
 import edu.umd.cs.piccolox.pswing.PSwingCanvas;
 
-import javax.swing.*;
-import java.awt.*;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
+import javax.swing.JTextField;
+import java.awt.Color;
 
 public class PSwingExample extends PFrame {
 
@@ -40,14 +38,8 @@ public class PSwingExample extends PFrame {
         layer.addChild(r2);
         layer.addChild(r1);
 
+        // add drag capability to pswing node
         ps.addInputEventListener(new PDragEventHandler());
-        //canvas.removeInputEventListener(canvas.getPanEventHandler());
-
-        camera.addPropertyChangeListener(PCamera.PROPERTY_VIEW_TRANSFORM, new PropertyChangeListener() {
-            public void propertyChange(PropertyChangeEvent e) {
-                System.out.println(e);
-            }
-        });
     }
 
 }
