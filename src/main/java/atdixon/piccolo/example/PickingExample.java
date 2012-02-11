@@ -77,6 +77,7 @@ public class PickingExample extends PFrame {
 
         OutliningGroup() {
             setStrokePaint(Color.green);
+            setPaint(null);
             addPropertyChangeListener(PNode.PROPERTY_FULL_BOUNDS, new PropertyChangeListener() {
                 public void propertyChange(PropertyChangeEvent evt) {
                     redrawOutline();

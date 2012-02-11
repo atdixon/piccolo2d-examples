@@ -33,14 +33,15 @@ public class StickyNavigationExample extends JFrame {
         });
     }
 
+    private final Container contentPane;
     private final PSwingCanvas canvas;
     private final JScrollPane tree;
 
     public StickyNavigationExample() throws HeadlessException {
-        Container pane = getContentPane();
-        pane.add(tree = tree());
-        pane.add(canvas = canvas());
-        pane.setLayout(new InternalLayout());
+        contentPane = getContentPane();
+        contentPane.add(tree = tree());
+        contentPane.add(canvas = canvas());
+        contentPane.setLayout(new InternalLayout());
         pack();
         setResizable(false);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -80,8 +81,8 @@ public class StickyNavigationExample extends JFrame {
         }
 
         public void layoutContainer(Container parent) {
-            tree.setBounds(0, 0, TOOL_WIDTH, 600);
-            canvas.setBounds(TOOL_WIDTH, 0, (int) (SIZE.getWidth() - TOOL_WIDTH), 600);
+            tree.setBounds(0, 0, TOOL_WIDTH, contentPane.getHeight());
+            canvas.setBounds(0, 0, contentPane.getWidth(), contentPane.getHeight());
         }
     }
 

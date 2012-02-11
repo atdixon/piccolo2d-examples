@@ -8,7 +8,7 @@ import edu.umd.cs.piccolo.event.PInputEvent;
 import edu.umd.cs.piccolo.nodes.PPath;
 import edu.umd.cs.piccolox.PFrame;
 
-import java.awt.Color;
+import java.awt.*;
 
 /**
  * Demonstrates animating a ball across the screen with "pause" behavior invoked by mouse clicks.
