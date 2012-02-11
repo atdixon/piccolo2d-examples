@@ -8,7 +8,8 @@ import edu.umd.cs.piccolo.nodes.PPath;
 import edu.umd.cs.piccolo.nodes.PText;
 import edu.umd.cs.piccolox.PFrame;
 
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Font;
 import java.awt.geom.Rectangle2D;
 
 public class KeyboardFocusExample extends PFrame {
@@ -20,7 +21,7 @@ public class KeyboardFocusExample extends PFrame {
     @Override
     public void initialize() {
         setSize(1200, 600);
-        revalidate();
+        invalidate();
 
         final PCanvas canvas = getCanvas();
         final PLayer layer = canvas.getLayer();

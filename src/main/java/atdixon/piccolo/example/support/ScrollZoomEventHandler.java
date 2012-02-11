@@ -12,13 +12,12 @@ public class ScrollZoomEventHandler extends PBasicInputEventHandler {
 
     @Override
     public void mouseWheelRotated(PInputEvent e) {
-        super.mouseWheelRotated(e);
         dump("wheel", e);
         final PCamera camera = e.getCamera();
         final Point2D canvasPosition = e.getCanvasPosition();
         camera.localToView(canvasPosition); // apply inverse of view transform before we scaleViewAboutPoint
         final int wheelRotation = e.getWheelRotation();
-        final double scaleFactor = wheelRotation < 0 ? 1 / SCALE_FACTOR : SCALE_FACTOR;
+        final double scaleFactor = wheelRotation > 0 ? 1 / SCALE_FACTOR : SCALE_FACTOR;
         camera.scaleViewAboutPoint(Math.pow(scaleFactor, Math.abs(wheelRotation)), canvasPosition.getX(), canvasPosition.getY());
     }
 
